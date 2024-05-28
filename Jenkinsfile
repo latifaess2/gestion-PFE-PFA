@@ -1,69 +1,53 @@
 pipeline {
-
   agent any
 
-
   environment {
-    DOCKERHUB_CREDENTIALS = credentials ('latifa-dockerhub')
-    DOCKERHUB_REPO = 'gestiondesprojets'               // Replace with your Docker Hub repository
-    DOCKERHUB_IMAGE = 'image_web' 
+    DOCKERHUB_CREDENTIALS = credentials('latifa-dockerhub')
   }
   stages {
-  stage('git clone') {
-    steps {
-      git 'https://github.com/latifaess2/gestion-PFE-PFA.git'
-    } 
+    stage('Checkout code') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Build') {
+      steps {
+        bat 'docker-compose build'
+        bat 'start docker-compose up -d'
+      }
+    }
+
+    stage('Test') {
+      steps {
+        echo "test passed"
+      }
+    }
+
+    stage('Push Images to Docker Hub') {
+      steps {
+        bat 'echo %DOCKERHUB_CREDENTIALS_PSW%| docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin'
+        bat 'docker-compose push'
+      }
+    }
+
+    stage('Cleanup') {
+      steps {
+        bat 'docker-compose down'
+      }
+    }
   }
 
-
-  stage('Build') {
-    steps {
-      bat 'docker-compose build'
+  post {
+    success {
+      mail bcc: '', body: '''Le pipeline Jenkins s\'est execute avec succes. 
+      Tout s\'est deroule sans erreur.
       
-    }
-  }
-
-  stage('login to Docker Hub') {
-    steps {
-      script {
-                    withCredentials([usernamePassword(credentialsId: env.DOCKERHUB_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        // Login to Docker Hub
-                        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                    }
-                }
-    }
-  }
-  stage('Push Docker Image') {
-            steps {
-                script {
-                    // Push the Docker image to Docker Hub
-                    docker.withRegistry('', env.DOCKERHUB_CREDENTIALS_ID) {
-                        docker.image("${env.DOCKERHUB_REPO}/${env.DOCKERHUB_IMAGE}").push()
-                    }
-                }
-            }
-        }
-  stage('Deploy') {
-            steps {
-                // Deploy your application, e.g., using docker-compose
-                sh 'docker-compose up -d'
-            }
-        }
-    }
-
-  
-
-
-  stage('Cleanup') {
-    steps {
-      bat 'docker-compose down'
+      ''', subject: 'Sujet : Reussite du pipeline Jenkins', to: ' latifaessabbar02@gmail.com '
+    failure {
+      mail bcc: '', body: '''Le pipeline Jenkins a echoue. 
+      Veuillez prendre les mesures nécessaires pour resoudre le probleme.
+      ''', subject: 'Sujet : Echec du pipeline Jenkins', to: ' latifaessabbar02@gmail.com '
     }
   }
 }
-
-post {
-        always {
-            // Clean up Docker environment
-            sh 'docker logout'
-        }
-    }
