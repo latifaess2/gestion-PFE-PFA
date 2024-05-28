@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    DOCKERHUB_CREDENTIALS = credentials('latifa-dockerhub')
+    DOCKERHUB_CREDENTIALS = credentials('latifa_dockerhub')
   }
   
   stages {
@@ -28,7 +28,7 @@ pipeline {
     stage('Push Images to Docker Hub') {
       steps {
         script {
-          withCredentials([usernamePassword(credentialsId: 'latifa-dockerhub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+          withCredentials([usernamePassword(credentialsId: 'latifa_dockerhub', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
             bat 'echo %DOCKER_PASSWORD% | docker login -u %DOCKER_USERNAME% --password-stdin'
           }
         }
