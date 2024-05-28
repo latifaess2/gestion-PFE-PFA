@@ -4,6 +4,7 @@ pipeline {
   environment {
     DOCKERHUB_CREDENTIALS = credentials('latifa-dockerhub')
   }
+  
   stages {
     stage('Checkout code') {
       steps {
@@ -26,7 +27,7 @@ pipeline {
 
     stage('Push Images to Docker Hub') {
       steps {
-        bat 'echo %DOCKERHUB_CREDENTIALS_PSW%| docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin'
+        bat 'echo %DOCKERHUB_CREDENTIALS_PSW% | docker login -u %DOCKERHUB_CREDENTIALS_USR% --password-stdin'
         bat 'docker-compose push'
       }
     }
@@ -40,14 +41,16 @@ pipeline {
 
   post {
     success {
-      mail bcc: '', body: '''Le pipeline Jenkins s\'est execute avec succes. 
-      Tout s\'est deroule sans erreur.
-      
-      ''', subject: 'Sujet : Reussite du pipeline Jenkins', to: ' latifaessabbar02@gmail.com '
+      mail bcc: '', body: '''
+      Le pipeline Jenkins s'est exécuté avec succès. 
+      Tout s'est déroulé sans erreur.
+      ''', subject: 'Sujet : Réussite du pipeline Jenkins', to: 'latifaessabbar02@gmail.com'
+    }
     failure {
-      mail bcc: '', body: '''Le pipeline Jenkins a echoue. 
-      Veuillez prendre les mesures nécessaires pour resoudre le probleme.
-      ''', subject: 'Sujet : Echec du pipeline Jenkins', to: ' latifaessabbar02@gmail.com '
+      mail bcc: '', body: '''
+      Le pipeline Jenkins a échoué. 
+      Veuillez prendre les mesures nécessaires pour résoudre le problème.
+      ''', subject: 'Sujet : Échec du pipeline Jenkins', to: 'latifaessabbar02@gmail.com'
     }
   }
 }
