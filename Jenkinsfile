@@ -42,9 +42,9 @@ pipeline {
       }
     }
   }
-stage('POST') {
-      steps {
-        echo "ollalllaaa"
+post {
+        always {
+            echo "ollalllaaa"
         }
     }
 
